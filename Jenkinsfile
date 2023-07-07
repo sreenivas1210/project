@@ -3,6 +3,16 @@ pipeline {
 
     environment {
         function_name = 'java-sample'
+
+    }
+
+    parameters {
+        string(name: 'RollbackVersion', description: 'Please enter rollback version')
+        choice(
+            choices: ['Dev', 'Test', 'Prod'],
+            name: 'Environment',
+            description : 'Please select environment'
+        )
     }
 
     stages {
@@ -51,7 +61,7 @@ pipeline {
             steps {
                 echo 'Push'
 
-                sh "aws s3 cp target/sample-1.0.3.jar s3://bermtecbatch31"
+                //sh "aws s3 cp target/sample-1.0.3.jar s3://bermtecbatch31"
             }
         }
 
@@ -66,18 +76,16 @@ pipeline {
                     steps {
                         echo 'Build'
 
-                        sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
+                        //sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
                     }
                 }
 
                 stage('Deploy to test ') {
-                    when {
-                        branch 'main'
-                    }
                     steps {
                         echo 'Build'
 
-                        // sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
+
+                        //sh "aws lambda update-function-code --function-name $function_name --region us-east-1 --s3-bucket bermtecbatch31 --s3-key sample-1.0.3.jar"
                     }
                 }
             }
@@ -85,7 +93,7 @@ pipeline {
 
         stage('Deploy to Prod') {
             when {
-                branch 'main'
+                expression { return params.Environment == 'Prod'}
             }
             steps {
                input (
@@ -113,7 +121,7 @@ pipeline {
         always {
             echo "${env.BUILD_ID}"
             echo "${BRANCH_NAME}"
-            echo "${BUILD_NUMBER}"
+            echo "${JENKINS_URL}"
 
         }
 
